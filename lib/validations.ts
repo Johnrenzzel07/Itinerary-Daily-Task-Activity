@@ -1,6 +1,4 @@
 import { z } from "zod";
-
-import { z } from "zod";
 import { normalizeActivityTime } from "@/lib/utils";
 
 export const activitySchema = z.object({
