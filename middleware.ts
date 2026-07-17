@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 const protectedRoutes = ["/dashboard", "/activities", "/status", "/settings", "/profile"];
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-    secureCookie: process.env.NODE_ENV === "production",
-  });
+/** Edge-safe session check — cookie presence only (no Node/next-auth imports). */
+function hasSessionCookie(request: NextRequest) {
+  const cookieNames = [
+    "authjs.session-token",
+    "__Secure-authjs.session-token",
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+  ];
 
-  const isLoggedIn = !!token;
+  return cookieNames.some((name) => request.cookies.has(name));
+}
+
+export function middleware(request: NextRequest) {
+  const isLoggedIn = hasSessionCookie(request);
   const { pathname } = request.nextUrl;
 
   const isProtected = protectedRoutes.some(

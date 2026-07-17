@@ -153,6 +153,29 @@ Requires `GROQ_API_KEY` in `.env`. The key is used server-side only and never ex
 - Use a strong `AUTH_SECRET` in production
 - Update default admin credentials before deploying
 
-## License
+## Deploying to Vercel
+
+### Required environment variables
+
+Set these in **Vercel → Project → Settings → Environment Variables**:
+
+| Variable | Example |
+|----------|---------|
+| `DATABASE_URL` | `mongodb+srv://.../itinerary?retryWrites=true&w=majority` |
+| `AUTH_SECRET` | Random string (`openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | `https://your-app.vercel.app` |
+| `GROQ_API_KEY` | Optional — AI grammar/paraphrase |
+
+### Root Directory
+
+If Vercel shows a plain **404: NOT_FOUND** page (white box, no app styling), check:
+
+1. **Root Directory** is set to the project folder (where `package.json` lives), not a parent folder
+2. **Framework Preset** is **Next.js**
+3. The latest deployment **Build** step succeeded (not just "Deploying outputs")
+4. `NEXTAUTH_URL` matches your live Vercel URL exactly
+
+After pushing fixes, trigger a **Redeploy** from the Vercel dashboard.
+
 
 Private project — all rights reserved.
