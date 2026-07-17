@@ -1,12 +1,30 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatActivityDate, formatActivityTime } from "@/lib/utils";
+import {
+  formatActivityDate,
+  formatActivityTime,
+  getNextSortDirection,
+  sortActivities,
+} from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ActivityWithRelations } from "@/types";
-import { ClipboardList } from "lucide-react";
+import type {
+  ActivitySortColumn,
+  ActivitySortDirection,
+  ActivityWithRelations,
+} from "@/types";
+import { ArrowDown, ArrowUp, ArrowUpDown, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const TABLE_COLUMNS: { key: ActivitySortColumn; label: string }[] = [
+  { key: "date", label: "Date" },
+  { key: "time", label: "Time" },
+  { key: "activity", label: "Activity" },
+  { key: "status", label: "Status" },
+  { key: "remarks", label: "Remarks" },
+];
 
 interface ActivityTableProps {
   activities: ActivityWithRelations[];
@@ -16,6 +34,9 @@ interface ActivityTableProps {
   onDelete?: (activity: ActivityWithRelations) => void;
   stickyHeader?: boolean;
   variant?: "default" | "guest";
+  sortColumn?: ActivitySortColumn;
+  sortDirection?: ActivitySortDirection;
+  onSortChange?: (column: ActivitySortColumn, direction: ActivitySortDirection) => void;
 }
 
 export function ActivityTable({
@@ -26,8 +47,51 @@ export function ActivityTable({
   onDelete,
   stickyHeader = true,
   variant = "default",
+  sortColumn: controlledSortColumn,
+  sortDirection: controlledSortDirection,
+  onSortChange,
 }: ActivityTableProps) {
   const isGuest = variant === "guest";
+  const isControlled = controlledSortColumn !== undefined && controlledSortDirection !== undefined;
+
+  const [internalSortColumn, setInternalSortColumn] = useState<ActivitySortColumn>("date");
+  const [internalSortDirection, setInternalSortDirection] =
+    useState<ActivitySortDirection>("desc");
+
+  const sortColumn = isControlled ? controlledSortColumn : internalSortColumn;
+  const sortDirection = isControlled ? controlledSortDirection : internalSortDirection;
+
+  const displayedActivities = useMemo(() => {
+    if (isControlled) {
+      return activities;
+    }
+
+    return sortActivities(activities, sortColumn, sortDirection);
+  }, [activities, isControlled, sortColumn, sortDirection]);
+
+  const handleSort = (column: ActivitySortColumn) => {
+    const nextDirection = getNextSortDirection(column, sortColumn, sortDirection);
+
+    if (onSortChange) {
+      onSortChange(column, nextDirection);
+      return;
+    }
+
+    setInternalSortColumn(column);
+    setInternalSortDirection(nextDirection);
+  };
+
+  const SortIcon = ({ column }: { column: ActivitySortColumn }) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 opacity-60" aria-hidden="true" />;
+    }
+
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4" aria-hidden="true" />
+    ) : (
+      <ArrowDown className="h-4 w-4" aria-hidden="true" />
+    );
+  };
 
   if (isLoading) {
     return (
@@ -102,17 +166,33 @@ export function ActivityTable({
             )}
           >
             <tr>
-              {["Date", "Time", "Activity", "Status", "Remarks"].map((col) => (
+              {TABLE_COLUMNS.map(({ key, label }) => (
                 <th
-                  key={col}
+                  key={key}
                   className={cn(
                     "text-left font-bold",
-                    isGuest ? "px-5 py-4 text-base" : "px-5 py-4 text-base font-bold",
-                    col === "Remarks" && showActions && !isGuest && "text-left",
-                    showActions && col === "Remarks" ? "" : ""
+                    isGuest ? "px-5 py-4 text-base" : "px-5 py-4 text-base font-bold"
                   )}
                 >
-                  {col}
+                  <button
+                    type="button"
+                    onClick={() => handleSort(key)}
+                    className={cn(
+                      "group inline-flex items-center gap-1.5 rounded-md transition-colors",
+                      "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
+                      sortColumn === key && "underline decoration-2 underline-offset-4"
+                    )}
+                    aria-label={`Sort by ${label} ${
+                      sortColumn === key
+                        ? sortDirection === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : ""
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <SortIcon column={key} />
+                  </button>
                 </th>
               ))}
               {showActions && (
@@ -129,7 +209,7 @@ export function ActivityTable({
           </thead>
           <tbody>
             <AnimatePresence mode="popLayout">
-              {activities.map((activity, index) => (
+              {displayedActivities.map((activity, index) => (
                 <motion.tr
                   key={activity.id}
                   initial={{ opacity: 0, y: 8 }}

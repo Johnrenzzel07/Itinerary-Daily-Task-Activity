@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ActivitiesPage() {
   const [{ activities, total }, statuses] = await Promise.all([
-    getActivities({ limit: 10, sortBy: "newest" }),
+    getActivities({ limit: 10, sortColumn: "date", sortDirection: "desc" }),
     getStatuses(),
   ]);
 

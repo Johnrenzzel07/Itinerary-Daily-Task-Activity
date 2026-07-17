@@ -53,10 +53,18 @@ import {
 import {
   formatGuestPeriodLabel,
   getGuestActivityCountLabel,
+  sortActivities,
   toDateInputValue,
 } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { ActivityWithRelations, EmployeeProfile, GuestDateLookup, GuestDatePreset } from "@/types";
+import type {
+  ActivitySortColumn,
+  ActivitySortDirection,
+  ActivityWithRelations,
+  EmployeeProfile,
+  GuestDateLookup,
+  GuestDatePreset,
+} from "@/types";
 
 interface GuestViewProps {
   initialActivities: ActivityWithRelations[];
@@ -84,6 +92,8 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
   const [rangeStartOpen, setRangeStartOpen] = useState(false);
   const [rangeEndOpen, setRangeEndOpen] = useState(false);
   const [browseDateVisible, setBrowseDateVisible] = useState(true);
+  const [sortColumn, setSortColumn] = useState<ActivitySortColumn>("date");
+  const [sortDirection, setSortDirection] = useState<ActivitySortDirection>("desc");
   const [data, setData] = useState<{
     activities: ActivityWithRelations[];
     employee: EmployeeProfile | null;
@@ -156,6 +166,11 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
       return matchesSearch && matchesStatus;
     });
   }, [activities, search, statusFilter]);
+
+  const sortedFiltered = useMemo(
+    () => sortActivities(filtered, sortColumn, sortDirection),
+    [filtered, sortColumn, sortDirection]
+  );
 
   const initials = currentEmployee?.name
     ?.split(" ")
@@ -244,7 +259,7 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
               variant="outline"
               className={guestActionBtn}
               onClick={() =>
-                exportActivitiesToExcel(filtered, {
+                exportActivitiesToExcel(sortedFiltered, {
                   employee: currentEmployee
                     ? { name: currentEmployee.name, position: currentEmployee.position }
                     : null,
@@ -254,11 +269,11 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
               <FileSpreadsheet className="h-5 w-5" />
               Export Excel
             </Button>
-            <Button variant="outline" className={guestActionBtn} onClick={() => exportActivitiesToPDF(filtered)}>
+            <Button variant="outline" className={guestActionBtn} onClick={() => exportActivitiesToPDF(sortedFiltered)}>
               <FileDown className="h-5 w-5" />
               Export PDF
             </Button>
-            <Button variant="outline" className={guestActionBtn} onClick={() => printActivities(filtered)}>
+            <Button variant="outline" className={guestActionBtn} onClick={() => printActivities(sortedFiltered)}>
               <Printer className="h-5 w-5" />
               Print
             </Button>
@@ -455,7 +470,18 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
           </select>
         </div>
 
-        <ActivityTable activities={filtered} isLoading={isLoading && !data} stickyHeader variant="guest" />
+        <ActivityTable
+          activities={sortedFiltered}
+          isLoading={isLoading && !data}
+          stickyHeader
+          variant="guest"
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSortChange={(column, direction) => {
+            setSortColumn(column);
+            setSortDirection(direction);
+          }}
+        />
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ import {
   exportActivitiesToExcel,
   printActivities,
 } from "@/lib/export";
-import type { ActivityWithRelations, StatusItem } from "@/types";
+import type { ActivitySortColumn, ActivitySortDirection, ActivityWithRelations, StatusItem } from "@/types";
 
 interface ActivitiesClientProps {
   initialActivities: ActivityWithRelations[];
@@ -56,7 +56,8 @@ export function ActivitiesClient({
   const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState("all");
   const [statusId, setStatusId] = useState("all");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "status">("newest");
+  const [sortColumn, setSortColumn] = useState<ActivitySortColumn>("date");
+  const [sortDirection, setSortDirection] = useState<ActivitySortDirection>("desc");
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ActivityWithRelations | null>(null);
@@ -71,14 +72,15 @@ export function ActivitiesClient({
         search,
         dateRange: dateRange as "today" | "yesterday" | "week" | "month" | "all",
         statusId: statusId === "all" ? undefined : statusId,
-        sortBy,
+        sortColumn,
+        sortDirection,
         page,
         limit,
       });
       setActivities(result.activities);
       setTotal(result.total);
     });
-  }, [search, dateRange, statusId, sortBy, page]);
+  }, [search, dateRange, statusId, sortColumn, sortDirection, page]);
 
   useEffect(() => {
     loadActivities();
@@ -151,17 +153,6 @@ export function ActivitiesClient({
           />
 
           <div className="flex flex-wrap gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) =>
-                setSortBy(e.target.value as "newest" | "oldest" | "status")
-              }
-              className="h-12 rounded-xl border-2 border-indigo-100 bg-white px-4 text-base text-slate-900 dark:border-white/20 dark:bg-black dark:text-white"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="status">By Status</option>
-            </select>
             <Button
               variant="outline"
               size="sm"
@@ -190,6 +181,13 @@ export function ActivitiesClient({
             activities={activities}
             isLoading={isPending}
             showActions
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSortChange={(column, direction) => {
+              setSortColumn(column);
+              setSortDirection(direction);
+              setPage(1);
+            }}
             onEdit={(a) => {
               setEditing(a);
               setFormOpen(true);

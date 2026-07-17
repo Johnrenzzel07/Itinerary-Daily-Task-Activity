@@ -16,7 +16,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activitySchema } from "@/lib/validations";
 import { parseActivityDateTime } from "@/lib/utils";
-import type { ActivityFilters, ActivityWithRelations, GuestDateLookup } from "@/types";
+import type { ActivityFilters, ActivitySortColumn, ActivitySortDirection, ActivityWithRelations, GuestDateLookup } from "@/types";
 
 async function requireAuth() {
   const session = await auth();
@@ -64,6 +64,26 @@ function buildDateFilter(
   }
 }
 
+function buildActivityOrderBy(
+  sortColumn: ActivitySortColumn = "date",
+  sortDirection: ActivitySortDirection = "desc"
+) {
+  const direction = sortDirection === "asc" ? ("asc" as const) : ("desc" as const);
+
+  switch (sortColumn) {
+    case "activity":
+      return { activity: direction };
+    case "status":
+      return { status: { name: direction } };
+    case "remarks":
+      return { remarks: direction };
+    case "time":
+    case "date":
+    default:
+      return { createdAt: direction };
+  }
+}
+
 export async function getActivities(
   filters: ActivityFilters = {}
 ): Promise<{ activities: ActivityWithRelations[]; total: number }> {
@@ -73,7 +93,8 @@ export async function getActivities(
     dateRange = "all",
     startDate,
     endDate,
-    sortBy = "newest",
+    sortColumn = "date",
+    sortDirection = "desc",
     page = 1,
     limit = 10,
   } = filters;
@@ -97,12 +118,7 @@ export async function getActivities(
     ];
   }
 
-  const orderBy =
-    sortBy === "oldest"
-      ? { createdAt: "asc" as const }
-      : sortBy === "status"
-        ? { status: { name: "asc" as const } }
-        : { createdAt: "desc" as const };
+  const orderBy = buildActivityOrderBy(sortColumn, sortDirection);
 
   const [activities, total] = await Promise.all([
     prisma.activity.findMany({
@@ -133,7 +149,8 @@ export async function getTodayActivities(): Promise<ActivityWithRelations[]> {
   const { activities } = await getActivities({
     dateRange: "today",
     limit: 100,
-    sortBy: "newest",
+    sortColumn: "date",
+    sortDirection: "desc",
   });
   return activities;
 }
@@ -149,7 +166,8 @@ export async function getGuestActivities(
     startDate: lookup.startDate,
     endDate: lookup.endDate,
     limit: 500,
-    sortBy: "newest",
+    sortColumn: "date",
+    sortDirection: "desc",
   });
 
   return activities;

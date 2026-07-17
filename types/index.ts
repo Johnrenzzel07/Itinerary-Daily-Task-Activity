@@ -26,13 +26,18 @@ export type StatusItem = {
   color: string;
 };
 
+export type ActivitySortColumn = "date" | "time" | "activity" | "status" | "remarks";
+
+export type ActivitySortDirection = "asc" | "desc";
+
 export type ActivityFilters = {
   search?: string;
   statusId?: string;
   dateRange?: "today" | "yesterday" | "week" | "month" | "all" | "custom";
   startDate?: string;
   endDate?: string;
-  sortBy?: "newest" | "oldest" | "status";
+  sortColumn?: ActivitySortColumn;
+  sortDirection?: ActivitySortDirection;
   page?: number;
   limit?: number;
 };

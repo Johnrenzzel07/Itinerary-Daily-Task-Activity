@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, parseISO, startOfDay, endOfDay, subDays, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isValid } from "date-fns";
+import type { ActivitySortColumn, ActivitySortDirection, ActivityWithRelations } from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,6 +13,55 @@ export function formatActivityDate(date: Date | string) {
 
 export function formatActivityTime(date: Date | string) {
   return format(new Date(date), "h:mm a");
+}
+
+export function sortActivities(
+  activities: ActivityWithRelations[],
+  column: ActivitySortColumn,
+  direction: ActivitySortDirection
+): ActivityWithRelations[] {
+  const multiplier = direction === "asc" ? 1 : -1;
+
+  return [...activities].sort((a, b) => {
+    let comparison = 0;
+
+    switch (column) {
+      case "date":
+      case "time":
+        comparison =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
+      case "activity":
+        comparison = a.activity.localeCompare(b.activity, undefined, {
+          sensitivity: "base",
+        });
+        break;
+      case "status":
+        comparison = a.status.name.localeCompare(b.status.name, undefined, {
+          sensitivity: "base",
+        });
+        break;
+      case "remarks":
+        comparison = a.remarks.localeCompare(b.remarks, undefined, {
+          sensitivity: "base",
+        });
+        break;
+    }
+
+    return comparison * multiplier;
+  });
+}
+
+export function getNextSortDirection(
+  column: ActivitySortColumn,
+  currentColumn: ActivitySortColumn,
+  currentDirection: ActivitySortDirection
+): ActivitySortDirection {
+  if (column === currentColumn) {
+    return currentDirection === "asc" ? "desc" : "asc";
+  }
+
+  return column === "date" || column === "time" ? "desc" : "asc";
 }
 
 export function sanitizeText(value: string, maxLength = 5000) {
