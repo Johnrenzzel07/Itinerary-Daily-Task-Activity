@@ -240,7 +240,17 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
               <RefreshCw className="h-5 w-5" />
               Refresh
             </Button>
-            <Button variant="outline" className={guestActionBtn} onClick={() => exportActivitiesToExcel(filtered)}>
+            <Button
+              variant="outline"
+              className={guestActionBtn}
+              onClick={() =>
+                exportActivitiesToExcel(filtered, {
+                  employee: currentEmployee
+                    ? { name: currentEmployee.name, position: currentEmployee.position }
+                    : null,
+                })
+              }
+            >
               <FileSpreadsheet className="h-5 w-5" />
               Export Excel
             </Button>
