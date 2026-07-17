@@ -85,6 +85,26 @@ body {
   color: white;
 }
 
+.guest-status-light {
+  background-color: color-mix(in srgb, var(--status-color) 16%, white);
+  border-color: var(--status-color);
+  color: var(--status-color);
+}
+
+.guest-status-filled-light {
+  background-color: var(--status-color);
+  border-color: var(--status-color);
+  color: white;
+}
+
+.guest-shell .guest-muted {
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+}
+
+.dark .guest-shell .guest-muted {
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .glass {
   background: var(--card);
   border: 1px solid var(--border);

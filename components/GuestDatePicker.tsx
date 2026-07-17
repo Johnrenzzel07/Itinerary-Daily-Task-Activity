@@ -46,7 +46,7 @@ export function GuestDatePicker({
           type="button"
           variant="outline"
           className={cn(
-            "h-12 min-w-[220px] justify-start border-2 border-black bg-white px-4 text-base font-semibold text-black hover:bg-black/5",
+            "h-12 min-w-[220px] justify-start border-2 border-indigo-200 bg-white px-4 text-base font-semibold text-indigo-900 hover:border-indigo-500 hover:bg-indigo-50 dark:border-white dark:bg-black dark:text-white dark:hover:bg-white/10",
             className
           )}
         >
@@ -54,7 +54,10 @@ export function GuestDatePicker({
           {selected ? format(selected, "MM/dd/yyyy") : label}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-4">
+      <PopoverContent
+        align="start"
+        className="w-auto border-2 border-indigo-100 bg-white p-4 dark:border-white dark:bg-black"
+      >
         <GuestCalendar selected={value} onSelect={handleSelect} />
       </PopoverContent>
     </Popover>

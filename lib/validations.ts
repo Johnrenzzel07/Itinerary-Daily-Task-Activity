@@ -12,6 +12,12 @@ export const activitySchema = z.object({
     .max(2000, "Remarks are too long")
     .optional()
     .transform((v) => (v ?? "").trim()),
+  activityDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Please select a valid date"),
+  activityTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "Please select a valid time"),
 });
 
 export const statusSchema = z.object({

@@ -20,17 +20,14 @@ export function StatusBadge({ name, color, className, variant = "default" }: Sta
 
   return (
     <Badge
-      style={
-        !isGuest
-          ? ({ "--status-color": statusColor } as React.CSSProperties)
-          : undefined
-      }
+      style={{ "--status-color": statusColor } as React.CSSProperties}
       className={cn(
         "border px-3 py-1 text-sm font-semibold",
         isGuest
           ? cn(
-              "border-2 border-black",
-              isFilled ? "bg-black text-white" : "bg-white text-black"
+              "guest-status-light border-2 dark:!border-white dark:!bg-black dark:!text-white",
+              isFilled &&
+                "guest-status-filled-light dark:!border-white dark:!bg-white dark:!text-black"
             )
           : cn(
               "admin-status-light dark:!border-white dark:!bg-black dark:!text-white",

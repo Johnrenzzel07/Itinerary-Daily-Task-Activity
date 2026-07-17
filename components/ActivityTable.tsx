@@ -48,18 +48,18 @@ export function ActivityTable({
         className={cn(
           "flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center",
           isGuest
-            ? "border-2 border-black bg-white"
+            ? "border-2 border-dashed border-indigo-200 bg-white dark:border-white dark:bg-black"
             : "border-black/20 dark:border-white/20"
         )}
       >
         <div
           className={cn(
             "mb-4 rounded-full border p-4",
-            isGuest ? "border-2 border-black" : "border-black/15 dark:border-white/15"
+            isGuest ? "border-2 border-indigo-200 dark:border-white" : "border-black/15 dark:border-white/15"
           )}
         >
           <ClipboardList
-            className={cn("h-8 w-8", isGuest ? "text-black" : "text-black/50 dark:text-white/50")}
+            className={cn("h-8 w-8", isGuest ? "text-indigo-600 dark:text-white" : "text-black/50 dark:text-white/50")}
           />
         </div>
         <h3 className={cn("font-semibold", isGuest ? "text-xl" : "text-lg")}>
@@ -68,7 +68,7 @@ export function ActivityTable({
         <p
           className={cn(
             "mt-2",
-            isGuest ? "text-base text-black" : "admin-muted text-base"
+            isGuest ? "text-base text-slate-700 dark:text-white" : "admin-muted text-base"
           )}
         >
           Activities will appear here once they are created.
@@ -82,7 +82,7 @@ export function ActivityTable({
       className={cn(
         "overflow-hidden rounded-xl border bg-white",
         isGuest
-          ? "border-2 border-black"
+          ? "border-2 border-indigo-100 shadow-lg shadow-indigo-100/40 dark:border-white dark:bg-black dark:shadow-none"
           : "border-2 border-indigo-100 dark:border-white/20 dark:bg-black"
       )}
     >
@@ -97,7 +97,7 @@ export function ActivityTable({
             className={cn(
               stickyHeader && "sticky top-0 z-10",
               isGuest
-                ? "bg-black text-white"
+                ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white dark:bg-black dark:bg-none dark:text-white"
                 : "bg-gradient-to-r from-indigo-600 to-violet-600 text-white dark:border-white/20 dark:bg-white dark:bg-none dark:text-black"
             )}
           >
@@ -139,14 +139,14 @@ export function ActivityTable({
                   className={cn(
                     "border-b transition-colors",
                     isGuest
-                      ? "border-black/20 bg-white even:bg-black/[0.04] hover:bg-black/[0.06]"
+                      ? "border-indigo-50 bg-white even:bg-indigo-50/50 hover:bg-indigo-50 dark:border-white/20 dark:bg-black dark:even:bg-white/[0.04] dark:hover:bg-white/[0.06]"
                       : "border-indigo-50 bg-white hover:bg-indigo-50/60 even:bg-indigo-50/30 dark:border-white/10 dark:bg-black dark:hover:bg-white/[0.03] dark:even:bg-white/[0.02]"
                   )}
                 >
                   <td
                     className={cn(
                       "whitespace-nowrap font-semibold text-black",
-                      isGuest ? "px-5 py-4 font-semibold" : "px-5 py-4 font-semibold text-indigo-900 dark:text-white"
+                      isGuest ? "px-5 py-4 font-semibold text-indigo-900 dark:text-white" : "px-5 py-4 font-semibold text-indigo-900 dark:text-white"
                     )}
                   >
                     {formatActivityDate(activity.createdAt)}
@@ -154,7 +154,7 @@ export function ActivityTable({
                   <td
                     className={cn(
                       "whitespace-nowrap text-black",
-                      isGuest ? "px-5 py-4 font-medium" : "px-5 py-4 font-medium text-slate-700 dark:text-white"
+                      isGuest ? "px-5 py-4 font-medium text-slate-700 dark:text-white" : "px-5 py-4 font-medium text-slate-700 dark:text-white"
                     )}
                   >
                     {formatActivityTime(activity.createdAt)}
@@ -179,7 +179,7 @@ export function ActivityTable({
                   <td
                     className={cn(
                       "max-w-xs text-black",
-                      isGuest ? "px-5 py-4 text-base leading-relaxed" : "px-5 py-4 text-base leading-relaxed text-slate-600 dark:text-white"
+                      isGuest ? "px-5 py-4 text-base leading-relaxed text-slate-600 dark:text-white" : "px-5 py-4 text-base leading-relaxed text-slate-600 dark:text-white"
                     )}
                   >
                     {activity.remarks || "-"}

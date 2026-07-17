@@ -15,6 +15,7 @@ import {
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activitySchema } from "@/lib/validations";
+import { parseActivityDateTime } from "@/lib/utils";
 import type { ActivityFilters, ActivityWithRelations, GuestDateLookup } from "@/types";
 
 async function requireAuth() {
@@ -174,6 +175,8 @@ export async function createActivity(formData: FormData) {
     activity: formData.get("activity") as string,
     statusId: formData.get("statusId") as string,
     remarks: (formData.get("remarks") as string) ?? "",
+    activityDate: formData.get("activityDate") as string,
+    activityTime: formData.get("activityTime") as string,
   };
 
   const parsed = activitySchema.safeParse(raw);
@@ -181,10 +184,20 @@ export async function createActivity(formData: FormData) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  let createdAt: Date;
+  try {
+    createdAt = parseActivityDateTime(parsed.data.activityDate, parsed.data.activityTime);
+  } catch {
+    return { success: false, error: "Invalid date or time" };
+  }
+
   const activity = await prisma.activity.create({
     data: {
-      ...parsed.data,
+      activity: parsed.data.activity,
+      statusId: parsed.data.statusId,
+      remarks: parsed.data.remarks,
       employeeId: session.user.id,
+      createdAt,
     },
     include: {
       employee: {
@@ -214,6 +227,8 @@ export async function updateActivity(id: string, formData: FormData) {
     activity: formData.get("activity") as string,
     statusId: formData.get("statusId") as string,
     remarks: (formData.get("remarks") as string) ?? "",
+    activityDate: formData.get("activityDate") as string,
+    activityTime: formData.get("activityTime") as string,
   };
 
   const parsed = activitySchema.safeParse(raw);
@@ -221,9 +236,21 @@ export async function updateActivity(id: string, formData: FormData) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  let createdAt: Date;
+  try {
+    createdAt = parseActivityDateTime(parsed.data.activityDate, parsed.data.activityTime);
+  } catch {
+    return { success: false, error: "Invalid date or time" };
+  }
+
   const activity = await prisma.activity.update({
     where: { id },
-    data: parsed.data,
+    data: {
+      activity: parsed.data.activity,
+      statusId: parsed.data.statusId,
+      remarks: parsed.data.remarks,
+      createdAt,
+    },
     include: {
       employee: {
         select: {

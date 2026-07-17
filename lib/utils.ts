@@ -53,6 +53,33 @@ export function toDateInputValue(date: Date) {
   return format(date, "yyyy-MM-dd");
 }
 
+export function toTimeInputValue(date: Date) {
+  return format(date, "HH:mm");
+}
+
+export function parseActivityDateTime(date: string, time: string): Date {
+  const parsedDate = parseISO(date);
+  if (!isValid(parsedDate)) {
+    throw new Error("Invalid date");
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    throw new Error("Invalid time");
+  }
+
+  const result = new Date(parsedDate);
+  result.setHours(hours, minutes, 0, 0);
+  return result;
+}
+
 export function formatGuestPeriodLabel(lookup: {
   preset: string;
   startDate?: string;
