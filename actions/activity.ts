@@ -1,21 +1,20 @@
 "use server";
 
 import { revalidatePath, unstable_noStore as noStore } from "next/cache";
-import {
-  startOfDay,
-  endOfDay,
-  subDays,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  parseISO,
-  isValid,
-} from "date-fns";
+import { subDays } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { activitySchema } from "@/lib/validations";
 import { parseActivityDateTime } from "@/lib/utils";
+import {
+  getPhilippinesCustomRange,
+  getPhilippinesDayRange,
+  getPhilippinesMonthRange,
+  getPhilippinesWeekRange,
+  getPhilippinesYesterdayRange,
+  PHILIPPINES_TIMEZONE,
+} from "@/lib/philippines-time";
 import type { ActivityFilters, ActivitySortColumn, ActivitySortDirection, ActivityWithRelations, GuestDateLookup } from "@/types";
 
 async function requireAuth() {
@@ -32,33 +31,18 @@ function buildDateFilter(
   endDate?: string
 ) {
   if (dateRange === "custom") {
-    const start = startDate && isValid(parseISO(startDate)) ? parseISO(startDate) : null;
-    const end = endDate && isValid(parseISO(endDate)) ? parseISO(endDate) : null;
-
-    if (start && end) {
-      return { gte: startOfDay(start), lte: endOfDay(end) };
-    }
-    if (start) {
-      return { gte: startOfDay(start), lte: endOfDay(start) };
-    }
-    if (end) {
-      return { gte: startOfDay(end), lte: endOfDay(end) };
-    }
-    return undefined;
+    return getPhilippinesCustomRange(startDate, endDate);
   }
 
-  const now = new Date();
   switch (dateRange) {
     case "today":
-      return { gte: startOfDay(now), lte: endOfDay(now) };
-    case "yesterday": {
-      const y = subDays(now, 1);
-      return { gte: startOfDay(y), lte: endOfDay(y) };
-    }
+      return getPhilippinesDayRange();
+    case "yesterday":
+      return getPhilippinesYesterdayRange();
     case "week":
-      return { gte: startOfWeek(now), lte: endOfWeek(now) };
+      return getPhilippinesWeekRange();
     case "month":
-      return { gte: startOfMonth(now), lte: endOfMonth(now) };
+      return getPhilippinesMonthRange();
     default:
       return undefined;
   }
@@ -333,12 +317,11 @@ export async function restoreActivity(data: {
 export async function getDashboardStats() {
   await requireAuth();
 
-  const now = new Date();
-  const todayStart = startOfDay(now);
-  const todayEnd = endOfDay(now);
+  const todayRange = getPhilippinesDayRange();
+  const weekStart = getPhilippinesDayRange(subDays(new Date(), 6)).gte;
 
   const todayActivities = await prisma.activity.findMany({
-    where: { createdAt: { gte: todayStart, lte: todayEnd } },
+    where: { createdAt: todayRange },
     include: {
       employee: {
         select: {
@@ -373,21 +356,21 @@ export async function getDashboardStats() {
       ? Math.round((completed / todayActivities.length) * 100)
       : 0;
 
-  const sevenDaysAgo = subDays(now, 6);
   const weekActivities = await prisma.activity.findMany({
-    where: { createdAt: { gte: startOfDay(sevenDaysAgo), lte: todayEnd } },
+    where: { createdAt: { gte: weekStart, lte: todayRange.lte } },
     select: { createdAt: true },
   });
 
   const dailyCounts: { date: string; count: number }[] = [];
   for (let i = 6; i >= 0; i--) {
-    const day = subDays(now, i);
-    const dayStr = day.toISOString().split("T")[0];
+    const reference = subDays(new Date(), i);
+    const dayKey = formatInTimeZone(reference, PHILIPPINES_TIMEZONE, "yyyy-MM-dd");
     const count = weekActivities.filter(
-      (a) => a.createdAt.toISOString().split("T")[0] === dayStr
+      (a) =>
+        formatInTimeZone(a.createdAt, PHILIPPINES_TIMEZONE, "yyyy-MM-dd") === dayKey
     ).length;
     dailyCounts.push({
-      date: day.toLocaleDateString("en-US", { weekday: "short" }),
+      date: formatInTimeZone(reference, PHILIPPINES_TIMEZONE, "EEE"),
       count,
     });
   }

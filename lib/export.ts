@@ -1,8 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx-js-style";
-import { format } from "date-fns";
 import { formatActivityDate, formatActivityTime } from "@/lib/utils";
+import { formatPhilippinesNowLabel } from "@/lib/philippines-time";
 import type { ActivityWithRelations } from "@/types";
 
 type ExportEmployee = {
@@ -92,7 +92,7 @@ export function exportActivitiesToExcel(
 ) {
   const title = options.title ?? "Daily Work Itinerary";
   const employee = resolveEmployee(activities, options.employee);
-  const exportedAt = format(new Date(), "MMMM d, yyyy h:mm a");
+  const exportedAt = formatPhilippinesNowLabel("MMMM d, yyyy h:mm a");
 
   const sheetData: XLSX.CellObject[][] = [
     [styledCell(title.toUpperCase(), cellStyle({

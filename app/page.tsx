@@ -1,6 +1,6 @@
-import { format } from "date-fns";
 import { getTodayActivities, getPrimaryEmployee } from "@/actions/activity";
 import { GuestView } from "@/components/GuestView";
+import { formatPhilippinesNowLabel } from "@/lib/philippines-time";
 import type { ActivityWithRelations, EmployeeProfile } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   let activities: ActivityWithRelations[] = [];
   let employee: EmployeeProfile | null = null;
-  const todayLabel = format(new Date(), "EEEE, MMMM d, yyyy");
+  const todayLabel = formatPhilippinesNowLabel("EEEE, MMMM d, yyyy");
 
   try {
     [activities, employee] = await Promise.all([

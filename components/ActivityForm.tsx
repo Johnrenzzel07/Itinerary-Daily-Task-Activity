@@ -25,6 +25,7 @@ import { createActivity, updateActivity } from "@/actions/activity";
 import {
   formatActivityDate,
   formatActivityTime,
+  getPhilippinesNowDateTime,
   normalizeActivityTime,
   parseActivityDateTime,
   toDateInputValue,
@@ -43,11 +44,14 @@ interface ActivityFormProps {
 }
 
 function getDefaultDateTime(activity?: ActivityWithRelations | null) {
-  const base = activity?.createdAt ? new Date(activity.createdAt) : new Date();
-  return {
-    date: toDateInputValue(base),
-    time: toTimeInputValue(base),
-  };
+  if (activity?.createdAt) {
+    return {
+      date: toDateInputValue(activity.createdAt),
+      time: toTimeInputValue(activity.createdAt),
+    };
+  }
+
+  return getPhilippinesNowDateTime();
 }
 
 function handleTimeChange(value: string) {
@@ -114,7 +118,10 @@ export function ActivityForm({
 
   useEffect(() => {
     if (open) {
-      const defaults = getDefaultDateTime(activity);
+      const defaults = activity?.createdAt
+        ? getDefaultDateTime(activity)
+        : getPhilippinesNowDateTime();
+
       setStatusId(activity?.statusId ?? "");
       setActivityText(activity?.activity ?? "");
       setRemarks(activity?.remarks ?? "");
@@ -186,7 +193,7 @@ export function ActivityForm({
           <div className="space-y-4 overflow-y-auto px-6 py-5">
             <FormSection
               title="Schedule"
-              description="Choose when this activity should appear on the itinerary."
+              description="Choose when this activity should appear on the itinerary. All times use Philippine Time (GMT+8)."
               icon={Calendar}
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -219,9 +226,27 @@ export function ActivityForm({
                   />
                 </div>
               </div>
-              <p className="admin-muted mt-3 rounded-xl border border-indigo-100 bg-indigo-50/50 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5">
-                Scheduled for: <span className="font-semibold text-indigo-800 dark:text-white">{scheduledPreview}</span>
-              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="admin-muted rounded-xl border border-indigo-100 bg-indigo-50/50 px-3 py-2 text-sm dark:border-white/15 dark:bg-white/5">
+                  Scheduled for:{" "}
+                  <span className="font-semibold text-indigo-800 dark:text-white">{scheduledPreview}</span>
+                  <span className="mt-1 block text-xs font-medium text-indigo-700/80 dark:text-white/70">
+                    Philippine Time (GMT+8)
+                  </span>
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 shrink-0 border-2"
+                  onClick={() => {
+                    const now = getPhilippinesNowDateTime();
+                    setActivityDate(now.date);
+                    setActivityTime(now.time);
+                  }}
+                >
+                  Use current PH time
+                </Button>
+              </div>
             </FormSection>
 
             <FormSection
