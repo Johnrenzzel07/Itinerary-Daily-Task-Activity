@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  position   String
+  email      String     @unique
+  password   String
+  avatar     String?
+  createdAt  DateTime   @default(now())
+  activities Activity[]
+
+  @@map("employees")
+}
+
+model Status {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  name       String     @unique
+  color      String
+  activities Activity[]
+
+  @@map("statuses")
+}
+
+model Activity {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId String   @db.ObjectId
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  activity   String
+  statusId   String   @db.ObjectId
+  status     Status   @relation(fields: [statusId], references: [id])
+  remarks    String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([statusId])
+  @@index([createdAt])
+  @@map("activities")
+}

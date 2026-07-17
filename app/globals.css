@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* Use .dark class only — not system prefers-color-scheme */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --muted: #64748b;
+  --border: rgba(79, 70, 229, 0.15);
+  --primary: #4f46e5;
+  --secondary: #f8fafc;
+  --admin-sidebar-from: #4338ca;
+  --admin-sidebar-to: #6d28d9;
+  --admin-surface: #f0f4ff;
+  --admin-accent: #4f46e5;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --muted: #ffffff;
+  --border: rgba(255, 255, 255, 0.2);
+  --primary: #ffffff;
+  --secondary: #000000;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-admin-surface: var(--admin-surface);
+  --font-sans: var(--font-inter);
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.admin-shell {
+  background: var(--admin-surface);
+  color: var(--foreground);
+}
+
+.dark .admin-shell {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.admin-shell .admin-muted {
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+}
+
+.dark .admin-shell .admin-muted {
+  color: color-mix(in srgb, var(--foreground) 75%, transparent);
+}
+
+.admin-status-light {
+  background-color: color-mix(in srgb, var(--status-color) 16%, white);
+  border-color: var(--status-color);
+  color: var(--status-color);
+}
+
+.admin-status-filled-light {
+  background-color: var(--status-color);
+  border-color: var(--status-color);
+  color: white;
+}
+
+.glass {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass {
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.04);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #ffffff;
+}
