@@ -1,5 +1,8 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
+import { authConfig } from "@/lib/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 const protectedRoutes = ["/dashboard", "/activities", "/status", "/settings", "/profile"];
 
@@ -25,5 +28,12 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/activities/:path*", "/status/:path*", "/settings/:path*", "/profile/:path*", "/login"],
+  matcher: [
+    "/dashboard/:path*",
+    "/activities/:path*",
+    "/status/:path*",
+    "/settings/:path*",
+    "/profile/:path*",
+    "/login",
+  ],
 };
