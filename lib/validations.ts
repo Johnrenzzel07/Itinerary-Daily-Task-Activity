@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { z } from "zod";
+import { normalizeActivityTime } from "@/lib/utils";
+
 export const activitySchema = z.object({
   activity: z
     .string()
@@ -17,7 +20,18 @@ export const activitySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Please select a valid date"),
   activityTime: z
     .string()
-    .regex(/^\d{2}:\d{2}$/, "Please select a valid time"),
+    .min(1, "Please select a valid time")
+    .transform((value, ctx) => {
+      try {
+        return normalizeActivityTime(value);
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          message: "Please select a valid time",
+        });
+        return z.NEVER;
+      }
+    }),
 });
 
 export const statusSchema = z.object({

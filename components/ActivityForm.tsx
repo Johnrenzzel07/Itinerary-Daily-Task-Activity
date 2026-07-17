@@ -25,6 +25,7 @@ import { createActivity, updateActivity } from "@/actions/activity";
 import {
   formatActivityDate,
   formatActivityTime,
+  normalizeActivityTime,
   parseActivityDateTime,
   toDateInputValue,
   toTimeInputValue,
@@ -38,7 +39,7 @@ interface ActivityFormProps {
   onOpenChange: (open: boolean) => void;
   statuses: StatusItem[];
   activity?: ActivityWithRelations | null;
-  onSuccess?: () => void;
+  onSuccess?: (activity?: ActivityWithRelations) => void;
 }
 
 function getDefaultDateTime(activity?: ActivityWithRelations | null) {
@@ -47,6 +48,14 @@ function getDefaultDateTime(activity?: ActivityWithRelations | null) {
     date: toDateInputValue(base),
     time: toTimeInputValue(base),
   };
+}
+
+function handleTimeChange(value: string) {
+  try {
+    return normalizeActivityTime(value);
+  } catch {
+    return value;
+  }
 }
 
 function FormSection({
@@ -132,7 +141,7 @@ export function ActivityForm({
     formData.set("activity", activityText);
     formData.set("remarks", remarks);
     formData.set("activityDate", activityDate);
-    formData.set("activityTime", activityTime);
+    formData.set("activityTime", handleTimeChange(activityTime));
 
     startTransition(async () => {
       const result = isEditing
@@ -140,12 +149,12 @@ export function ActivityForm({
         : await createActivity(formData);
 
       if (result.success) {
-        const savedAt = new Date(`${activityDate}T${activityTime}`);
+        const savedAt = parseActivityDateTime(activityDate, activityTime);
         toast.success(isEditing ? "Activity updated" : "Activity created", {
           description: `${formatActivityDate(savedAt)} at ${formatActivityTime(savedAt)}`,
         });
         onOpenChange(false);
-        onSuccess?.();
+        onSuccess?.(result.data);
       } else {
         toast.error(result.error ?? "Something went wrong");
       }
@@ -205,7 +214,7 @@ export function ActivityForm({
                     name="activityTime"
                     type="time"
                     value={activityTime}
-                    onChange={(e) => setActivityTime(e.target.value)}
+                    onChange={(e) => setActivityTime(handleTimeChange(e.target.value))}
                     required
                   />
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useCallback, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -51,6 +51,7 @@ export function ActivitiesClient({
   statuses,
 }: ActivitiesClientProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [activities, setActivities] = useState(initialActivities);
   const [total, setTotal] = useState(initialTotal);
   const [search, setSearch] = useState("");
@@ -229,7 +230,21 @@ export function ActivitiesClient({
         }}
         statuses={statuses}
         activity={editing}
-        onSuccess={loadActivities}
+        onSuccess={(saved) => {
+          if (saved) {
+            setActivities((prev) => {
+              const index = prev.findIndex((item) => item.id === saved.id);
+              if (index >= 0) {
+                const next = [...prev];
+                next[index] = saved;
+                return next;
+              }
+              return [saved, ...prev];
+            });
+          }
+          loadActivities();
+          router.refresh();
+        }}
       />
 
       <AlertDialog open={!!deleting} onOpenChange={() => setDeleting(null)}>

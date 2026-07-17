@@ -103,17 +103,19 @@ export function toDateInputValue(date: Date) {
   return format(date, "yyyy-MM-dd");
 }
 
-export function toTimeInputValue(date: Date) {
-  return format(date, "HH:mm");
+export function toTimeInputValue(date: Date | string) {
+  return format(new Date(date), "HH:mm");
 }
 
-export function parseActivityDateTime(date: string, time: string): Date {
-  const parsedDate = parseISO(date);
-  if (!isValid(parsedDate)) {
-    throw new Error("Invalid date");
+export function normalizeActivityTime(time: string): string {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) {
+    throw new Error("Invalid time");
   }
 
-  const [hours, minutes] = time.split(":").map(Number);
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
   if (
     Number.isNaN(hours) ||
     Number.isNaN(minutes) ||
@@ -125,9 +127,27 @@ export function parseActivityDateTime(date: string, time: string): Date {
     throw new Error("Invalid time");
   }
 
-  const result = new Date(parsedDate);
-  result.setHours(hours, minutes, 0, 0);
-  return result;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+export function parseActivityDateTime(date: string, time: string): Date {
+  const [year, month, day] = date.split("-").map(Number);
+  if (!year || !month || !day) {
+    throw new Error("Invalid date");
+  }
+
+  const parsedDate = new Date(year, month - 1, day);
+  if (!isValid(parsedDate) || toDateInputValue(parsedDate) !== date) {
+    throw new Error("Invalid date");
+  }
+
+  const { hours, minutes } = (() => {
+    const normalized = normalizeActivityTime(time);
+    const [h, m] = normalized.split(":").map(Number);
+    return { hours: h, minutes: m };
+  })();
+
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
 }
 
 export function formatGuestPeriodLabel(lookup: {

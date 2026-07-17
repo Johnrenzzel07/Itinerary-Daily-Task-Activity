@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 import {
   startOfDay,
   endOfDay,
@@ -87,6 +87,8 @@ function buildActivityOrderBy(
 export async function getActivities(
   filters: ActivityFilters = {}
 ): Promise<{ activities: ActivityWithRelations[]; total: number }> {
+  noStore();
+
   const {
     search = "",
     statusId,
