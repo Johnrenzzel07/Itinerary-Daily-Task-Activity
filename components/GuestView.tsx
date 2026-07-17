@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { parseISO, subDays, addDays } from "date-fns";
 import {
@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GuestDatePicker } from "@/components/GuestDatePicker";
 import { ActivityTable } from "@/components/ActivityTable";
-import { usePolling } from "@/hooks/usePolling";
 import { getGuestActivities, getPrimaryEmployee } from "@/actions/activity";
 import {
   exportActivitiesToPDF,
@@ -58,6 +57,12 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [rangeStartOpen, setRangeStartOpen] = useState(false);
   const [rangeEndOpen, setRangeEndOpen] = useState(false);
+  const [data, setData] = useState<{
+    activities: ActivityWithRelations[];
+    employee: EmployeeProfile | null;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [, startTransition] = useTransition();
 
   const fetchData = useCallback(async () => {
     const [activities, emp] = await Promise.all([
@@ -67,13 +72,21 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
     return { activities, employee: emp };
   }, [dateLookup]);
 
-  const liveUpdates = dateLookup.preset === "today";
-  const { data, isLoading, refresh } = usePolling(
-    fetchData,
-    10000,
-    liveUpdates,
-    [dateLookup.preset, dateLookup.startDate, dateLookup.endDate]
-  );
+  const refresh = useCallback(() => {
+    startTransition(async () => {
+      setIsLoading(true);
+      try {
+        const result = await fetchData();
+        setData(result);
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  }, [fetchData]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const activities = data?.activities ?? initialActivities;
   const currentEmployee = data?.employee ?? employee;
@@ -184,11 +197,6 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
             <h1 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">
               {periodLabel}
             </h1>
-            {liveUpdates && (
-              <p className="mt-2 text-base font-medium text-black">
-                Live updates every 10 seconds
-              </p>
-            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -374,9 +382,7 @@ export function GuestView({ initialActivities, employee, todayLabel }: GuestView
             </div>
             <div className="hidden h-px flex-1 bg-black md:mx-8 md:block" />
             <div className="rounded-xl border-2 border-black px-6 py-4 text-center md:text-right">
-              <p className="text-base font-medium text-black">
-                {liveUpdates ? "Live updates every 10s" : "Selected period"}
-              </p>
+              <p className="text-base font-medium text-black">Selected period</p>
               <p className="mt-1 text-4xl font-bold">{filtered.length}</p>
               <p className="text-base font-medium text-black">{countLabel}</p>
             </div>

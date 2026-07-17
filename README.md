@@ -9,7 +9,6 @@ An enterprise-style web application for managing and publishing daily work itine
 - Activity table with date, time, activity, status, and remarks
 - Date browsing: Today, Yesterday, This Week, This Month, All Time, custom date/range
 - Search and status filters
-- Live auto-refresh (every 10 seconds on Today view)
 - Export to PDF / Excel and print
 - High-contrast black & white design for readability
 
